@@ -1,37 +1,40 @@
 package mk.finki.orderservice.controller
 
-import jakarta.validation.Valid
-import mk.finki.orderservice.domain.OrderStatus
-import mk.finki.orderservice.dto.CreateOrderRequest
-import mk.finki.orderservice.dto.OrderResponse
-import mk.finki.orderservice.service.OrderService
-import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseEntity
+import mk.finki.orderservice.application.OrderApplicationService
+import mk.finki.orderservice.domain.order.Order
 import org.springframework.web.bind.annotation.*
-import java.util.UUID
+import java.util.*
 
 @RestController
-@RequestMapping("/orders")
-class OrderController(private val orderService: OrderService) {
-
+@RequestMapping("/api/orders")
+class OrderController(
+    private val orderApplicationService: OrderApplicationService
+) {
     @PostMapping
-    fun createOrder(@Valid @RequestBody request: CreateOrderRequest): ResponseEntity<OrderResponse> {
-        val response = orderService.createOrder(request)
-        return ResponseEntity.status(HttpStatus.CREATED).body(response)
+    fun placeOrder(@RequestBody request: PlaceOrderRequest): Order {
+        return orderApplicationService.placeOrder(
+            request.customerId,
+            request.restaurantId,
+            request.items.map { 
+                OrderApplicationService.ItemRequest(it.menuItemId, it.quantity, it.price, it.currency)
+            }
+        )
     }
 
     @GetMapping("/{id}")
-    fun getOrder(@PathVariable id: UUID): ResponseEntity<OrderResponse> =
-        ResponseEntity.ok(orderService.getOrder(id))
+    fun getOrder(@PathVariable id: UUID): Order =
+        orderApplicationService.getOrder(id).orElseThrow { RuntimeException("Order not found") }
 
-    @GetMapping("/customer/{customerId}")
-    fun getOrdersByCustomer(@PathVariable customerId: UUID): ResponseEntity<List<OrderResponse>> =
-        ResponseEntity.ok(orderService.getOrdersByCustomer(customerId))
+    data class PlaceOrderRequest(
+        val customerId: UUID,
+        val restaurantId: UUID,
+        val items: List<OrderItemRequest>
+    )
 
-    @PatchMapping("/{id}/status")
-    fun updateStatus(
-        @PathVariable id: UUID,
-        @RequestParam status: OrderStatus
-    ): ResponseEntity<OrderResponse> =
-        ResponseEntity.ok(orderService.updateStatus(id, status))
+    data class OrderItemRequest(
+        val menuItemId: UUID,
+        val quantity: Int,
+        val price: java.math.BigDecimal,
+        val currency: String
+    )
 }
