@@ -1,3 +1,7 @@
+networks:
+  shared_net:
+    driver: bridge
+
 services:
   postgres-restaurant:
     image: postgres:15
@@ -7,6 +11,8 @@ services:
       POSTGRES_PASSWORD: password
     ports:
       - "5432:5432"
+    networks:
+      - shared_net
 
   postgres-order:
     image: postgres:15
@@ -16,12 +22,16 @@ services:
       POSTGRES_PASSWORD: password
     ports:
       - "5433:5432"
+    networks:
+      - shared_net
 
   consul:
     image: hashicorp/consul:1.15
     ports:
       - "8500:8500"
     command: "agent -dev -client=0.0.0.0"
+    networks:
+      - shared_net
 
   kafka:
     image: bitnami/kafka:3.4
@@ -34,6 +44,20 @@ services:
       - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
     ports:
       - "9092:9092"
+    networks:
+      - shared_net
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    depends_on:
+      - kafka
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+    ports:
+      - "8085:8080"
+    networks:
+      - shared_net
 
   keycloak:
     image: quay.io/keycloak/keycloak:22.0.1
@@ -43,3 +67,5 @@ services:
     command: start-dev
     ports:
       - "8080:8080"
+    networks:
+      - shared_net

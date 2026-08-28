@@ -1,18 +1,20 @@
 package mk.finki.restaurantservice.domain.restaurant.events
 
-import java.time.Instant
-import java.util.UUID
+import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonProperty
+import mk.finki.restaurantservice.domain.restaurant.valueobjects.Identifier
 
-abstract class AbstractEvent(
-    val aggregateId: Any,
-    val occurredAt: Instant = Instant.now(),
-    val eventId: UUID = UUID.randomUUID()
-) {
-    fun eventType(): String = this::class.simpleName ?: "UnknownEvent"
-    
-    fun eventTopic(): String = eventType()
-        .replace(Regex("([a-z])([A-Z])"), "$1.$2")
-        .lowercase()
+abstract class AbstractEvent(open val identifier: Identifier<out Any>) {
+    @JsonProperty("_eventType")
+    fun eventType(): String = this.javaClass.simpleName
 
+    @JsonIgnore
+    fun eventTopic(): String =
+        this.javaClass.simpleName
+            .removeSuffix("Event")
+            .replace(Regex("([a-z])([A-Z])"), "$1.$2")
+            .lowercase()
+
+    @JsonIgnore
     open fun toExternalEvent(): Any? = null
 }

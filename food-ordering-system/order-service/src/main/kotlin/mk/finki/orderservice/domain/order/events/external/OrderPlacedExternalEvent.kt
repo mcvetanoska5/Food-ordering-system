@@ -4,6 +4,7 @@ import java.util.UUID
 
 data class OrderPlacedExternalEvent(
     val orderId: UUID,
+    val restaurantId: UUID,
     val items: List<ExternalOrderItem>
 )
 

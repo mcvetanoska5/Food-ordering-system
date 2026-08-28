@@ -81,6 +81,11 @@
             <groupId>org.springframework.kafka</groupId>
             <artifactId>spring-kafka</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.axonframework</groupId>
+            <artifactId>axon-spring-boot-starter</artifactId>
+            <version>4.10.1</version>
+        </dependency>
 
         <!-- Resilience for Feign calls -->
         <dependency>

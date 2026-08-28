@@ -5,10 +5,10 @@ import mk.finki.restaurantservice.domain.restaurant.valueobjects.MenuItemId
 import mk.finki.restaurantservice.domain.restaurant.valueobjects.RestaurantId
 
 data class MenuItemAvailabilityChangedEvent(
-    override val aggregateId: RestaurantId,
+    override val restaurantId: RestaurantId,
     val menuItemId: MenuItemId,
     val available: Boolean
-) : RestaurantEvent(aggregateId) {
+) : RestaurantEvent(restaurantId) {
     override fun toExternalEvent(): MenuItemAvailabilityChangedExternalEvent =
-        MenuItemAvailabilityChangedExternalEvent(aggregateId.value, menuItemId.value, available)
+        MenuItemAvailabilityChangedExternalEvent(restaurantId = restaurantId.value, menuItemId = menuItemId.value, available = available)
 }

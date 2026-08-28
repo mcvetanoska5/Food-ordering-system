@@ -17,8 +17,9 @@ data class OrderPlacedEvent(
 ) : OrderEvent(orderId) {
     override fun toExternalEvent(): OrderPlacedExternalEvent =
         OrderPlacedExternalEvent(
-            orderId.value,
-            items.map { ExternalOrderItem(it.menuItemId, it.quantity) }
+            orderId = orderId.value,
+            restaurantId = restaurantId.value,
+            items = items.map { ExternalOrderItem(menuItemId = it.menuItemId, quantity = it.quantity) }
         )
 }
 

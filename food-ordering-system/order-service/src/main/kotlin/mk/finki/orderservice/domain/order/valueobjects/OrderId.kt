@@ -8,8 +8,8 @@ import java.util.UUID
 @Embeddable
 data class OrderId(
     @Column(name = "order_id")
-    val value: UUID
-) : Serializable {
+    override val value: UUID
+) : Serializable, Identifier<UUID> {
     init {
         require(value.toString().isNotEmpty()) { "OrderId cannot be empty" }
     }
