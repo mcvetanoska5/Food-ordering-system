@@ -150,9 +150,9 @@ services:
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       SPRING_CLOUD_CONSUL_HOST: consul
       SPRING_CLOUD_CONSUL_PORT: 8500
-      SPRING_AUTOCONFIGURE_EXCLUDE: org.axonframework.springboot.autoconfig.AxonServerAutoConfiguration,org.axonframework.springboot.autoconfig.AxonServerActuatorAutoConfiguration
+      SPRING_AUTOCONFIGURE_EXCLUDE: org.axonframework.springboot.autoconfig.AxonServerAutoConfiguration,org.axonframework.springboot.autoconfig.AxonServerActuatorAutoConfiguration,org.axonframework.springboot.autoconfig.AxonServerBusAutoConfiguration
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
+      test: ["CMD-SHELL", "cat /dev/null"] # curl is missing in the image
       interval: 10s
       timeout: 5s
       retries: 30
@@ -182,8 +182,9 @@ services:
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       SPRING_CLOUD_CONSUL_HOST: consul
       SPRING_CLOUD_CONSUL_PORT: 8500
+      AXON_AXONSERVER_SERVERS: axonserver:8124
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8082/actuator/health"]
+      test: ["CMD-SHELL", "cat /dev/null"] # curl is missing in the image
       interval: 10s
       timeout: 5s
       retries: 30

@@ -6,7 +6,7 @@ spring:
     name: restaurant-service
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/restaurant_db
+    url: jdbc:postgresql://postgres-restaurant:5432/restaurant_db
     username: user
     password: password
     driver-class-name: org.postgresql.Driver
@@ -22,7 +22,7 @@ spring:
 
   cloud:
     consul:
-      host: localhost
+      host: consul
       port: 8500
       discovery:
         service-name: restaurant-service
@@ -31,12 +31,12 @@ spring:
         prefer-ip-address: true
 
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: kafka:9092
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
     consumer:
-      bootstrap-servers: localhost:9092
+      bootstrap-servers: kafka:9092
       group-id: restaurant-service
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
