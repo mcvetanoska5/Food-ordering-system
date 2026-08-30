@@ -1,21 +1,13 @@
+
 networks:
   shared_net:
     driver: bridge
 
 services:
-  postgres-restaurant:
-    image: postgres:15
-    environment:
-      POSTGRES_DB: restaurant_db
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-    ports:
-      - "5432:5432"
-    networks:
-      - shared_net
-
+  # PostgreSQL for Order Service
   postgres-order:
     image: postgres:15
+    container_name: postgres-order
     environment:
       POSTGRES_DB: order_db
       POSTGRES_USER: user
@@ -24,31 +16,60 @@ services:
       - "5433:5432"
     networks:
       - shared_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d order_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  consul:
-    image: hashicorp/consul:1.15
+  # PostgreSQL for Restaurant Service
+  postgres-restaurant:
+    image: postgres:15
+    container_name: postgres-restaurant
+    environment:
+      POSTGRES_DB: restaurant_db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
     ports:
-      - "8500:8500"
-    command: "agent -dev -client=0.0.0.0"
+      - "5432:5432"
     networks:
       - shared_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d restaurant_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
+  # Kafka Message Broker
   kafka:
-    image: bitnami/kafka:3.4
+    image: apache/kafka:latest
+    container_name: kafka
     environment:
-      - KAFKA_CFG_NODE_ID=0
-      - KAFKA_CFG_PROCESS_ROLES=controller,broker
-      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
-      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
-      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@kafka:9093
-      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_NODE_ID=1
+      - KAFKA_PROCESS_ROLES=broker,controller
+      - KAFKA_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+      - KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      - KAFKA_CONTROLLER_QUORUM_VOTERS=1@kafka:9093
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+      - KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=1
+      - KAFKA_TRANSACTION_STATE_LOG_MIN_ISR=1
+      - KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS=0
     ports:
       - "9092:9092"
     networks:
       - shared_net
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
+  # Kafka UI (optional, for debugging)
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
     depends_on:
       - kafka
     environment:
@@ -59,13 +80,111 @@ services:
     networks:
       - shared_net
 
-  keycloak:
-    image: quay.io/keycloak/keycloak:22.0.1
-    environment:
-      - KEYCLOAK_ADMIN=admin
-      - KEYCLOAK_ADMIN_PASSWORD=admin
-    command: start-dev
+  # Consul for Service Discovery
+  consul:
+    image: hashicorp/consul:1.15
+    container_name: consul
     ports:
-      - "8080:8080"
+      - "8500:8500"
+      - "8600:8600"
+    command: "agent -dev -client=0.0.0.0 -bind=0.0.0.0"
     networks:
       - shared_net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8500/v1/status/leader"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Keycloak (optional, commented out for now; uncomment when auth is fully integrated)
+  # keycloak:
+  #   image: quay.io/keycloak/keycloak:22.0.1
+  #   container_name: keycloak
+  #   environment:
+  #     - KEYCLOAK_ADMIN=admin
+  #     - KEYCLOAK_ADMIN_PASSWORD=admin
+  #   command: start-dev
+  #   ports:
+  #     - "8080:8080"
+  #   networks:
+  #     - shared_net
+
+  # Axon Server (provides event store / messaging for Axon Framework)
+  axonserver:
+    image: axoniq/axonserver:latest
+    container_name: axonserver
+    ports:
+      - "8124:8124"
+      - "8024:8024"
+    networks:
+      - shared_net
+    environment:
+      - AXONSERVER_CLUSTERNODES=axonserver
+    healthcheck:
+      test: ["CMD","curl","-f","http://localhost:8024/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Order Service Application
+  order-service:
+    build:
+      context: ./order-service
+      dockerfile: Dockerfile
+    container_name: order-service
+    ports:
+      - "8081:8081"
+    networks:
+      - shared_net
+    depends_on:
+      postgres-order:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      consul:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-order:5432/order_db
+      SPRING_DATASOURCE_USERNAME: user
+      SPRING_DATASOURCE_PASSWORD: password
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_CLOUD_CONSUL_HOST: consul
+      SPRING_CLOUD_CONSUL_PORT: 8500
+      SPRING_AUTOCONFIGURE_EXCLUDE: org.axonframework.springboot.autoconfig.AxonServerAutoConfiguration,org.axonframework.springboot.autoconfig.AxonServerActuatorAutoConfiguration
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
+  # Restaurant Service Application
+  restaurant-service:
+    build:
+      context: ./restaurant-service
+      dockerfile: Dockerfile
+    container_name: restaurant-service
+    ports:
+      - "8082:8082"
+    networks:
+      - shared_net
+    depends_on:
+      postgres-restaurant:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      consul:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-restaurant:5432/restaurant_db
+      SPRING_DATASOURCE_USERNAME: user
+      SPRING_DATASOURCE_PASSWORD: password
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_CLOUD_CONSUL_HOST: consul
+      SPRING_CLOUD_CONSUL_PORT: 8500
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s

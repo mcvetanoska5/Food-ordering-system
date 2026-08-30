@@ -6,7 +6,7 @@ spring:
     name: order-service
 
   datasource:
-    url: jdbc:postgresql://localhost:5433/order_db
+    url: jdbc:postgresql://postgres-order:5432/order_db
     username: user
     password: password
     driver-class-name: org.postgresql.Driver
@@ -22,7 +22,7 @@ spring:
 
   cloud:
     consul:
-      host: localhost
+      host: consul
       port: 8500
       discovery:
         service-name: order-service
@@ -48,12 +48,12 @@ spring:
           issuer-uri: http://localhost:9090/realms/food-ordering
 
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: kafka:9092
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
     consumer:
-      bootstrap-servers: localhost:9092
+      bootstrap-servers: kafka:9092
       group-id: order-service
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
