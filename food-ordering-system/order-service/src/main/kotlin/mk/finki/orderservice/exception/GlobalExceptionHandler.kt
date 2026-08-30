@@ -1,5 +1,8 @@
 package mk.finki.orderservice.exception
 
+import jakarta.servlet.http.HttpServletRequest
+import mk.finki.orderservice.application.MenuItemNotFoundException
+import mk.finki.orderservice.application.MenuItemUnavailableException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.ExceptionHandler
@@ -11,35 +14,42 @@ import java.time.Instant
 class GlobalExceptionHandler {
 
     @ExceptionHandler(OrderNotFoundException::class)
-    fun handleNotFound(ex: OrderNotFoundException): ResponseEntity<Any> =
-        ResponseEntity.status(HttpStatus.NOT_FOUND).body(body(ex.message ?: "Order not found"))
+    fun handleNotFound(ex: OrderNotFoundException, request: HttpServletRequest): ResponseEntity<ErrorResponse> =
+        error(HttpStatus.NOT_FOUND, ex, request)
 
-    /**
-     * Fired when e.g. PATCH /orders/{id}/status?status=NOT_A_REAL_STATUS is sent —
-     * Spring can't convert the query param to the OrderStatus enum. Without this
-     * handler it bubbles up as an unhandled 500 instead of a clean 400.
-     */
+    @ExceptionHandler(MenuItemNotFoundException::class)
+    fun handleMenuItemNotFound(ex: MenuItemNotFoundException, request: HttpServletRequest): ResponseEntity<ErrorResponse> =
+        error(HttpStatus.NOT_FOUND, ex, request)
+
+    @ExceptionHandler(MenuItemUnavailableException::class)
+    fun handleMenuItemUnavailable(ex: MenuItemUnavailableException, request: HttpServletRequest): ResponseEntity<ErrorResponse> =
+        error(HttpStatus.CONFLICT, ex, request)
+
     @ExceptionHandler(MethodArgumentTypeMismatchException::class)
-    fun handleTypeMismatch(ex: MethodArgumentTypeMismatchException): ResponseEntity<Any> {
+    fun handleTypeMismatch(ex: MethodArgumentTypeMismatchException, request: HttpServletRequest): ResponseEntity<ErrorResponse> {
         val message = "Invalid value '${ex.value}' for parameter '${ex.name}'" +
             (ex.requiredType?.let { if (it.isEnum) ": expected one of ${it.enumConstants.joinToString()}" else "" } ?: "")
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body(message))
+        return error(HttpStatus.BAD_REQUEST, message, request)
     }
 
     @ExceptionHandler(InvalidOrderException::class)
-    fun handleInvalidOrder(ex: InvalidOrderException): ResponseEntity<Any> =
-        ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(
-            mapOf(
-                "timestamp" to Instant.now().toString(),
-                "error" to ex.message,
-                "unavailableItems" to ex.unavailableItems
-            )
-        )
+    fun handleInvalidOrder(ex: InvalidOrderException, request: HttpServletRequest): ResponseEntity<ErrorResponse> =
+        error(HttpStatus.BAD_REQUEST, ex, request)
 
     @ExceptionHandler(IllegalStateException::class)
-    fun handleIllegalState(ex: IllegalStateException): ResponseEntity<Any> =
-        ResponseEntity.status(HttpStatus.CONFLICT).body(body(ex.message ?: "Conflict"))
+    fun handleIllegalState(ex: IllegalStateException, request: HttpServletRequest): ResponseEntity<ErrorResponse> =
+        error(HttpStatus.CONFLICT, ex, request)
 
-    private fun body(message: String): Map<String, Any> =
-        mapOf("timestamp" to Instant.now().toString(), "error" to message)
+    private fun error(status: HttpStatus, ex: Exception, request: HttpServletRequest): ResponseEntity<ErrorResponse> =
+        error(status, ex.message ?: status.reasonPhrase, request)
+
+    private fun error(status: HttpStatus, message: String, request: HttpServletRequest): ResponseEntity<ErrorResponse> =
+        ResponseEntity.status(status).body(
+            ErrorResponse(
+                status = status.value(),
+                error = status.reasonPhrase,
+                message = message,
+                path = request.requestURI
+            )
+        )
 }

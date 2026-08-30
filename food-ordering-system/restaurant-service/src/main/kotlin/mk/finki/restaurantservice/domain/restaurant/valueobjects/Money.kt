@@ -1,5 +1,6 @@
 package mk.finki.restaurantservice.domain.restaurant.valueobjects
 
+import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.persistence.Column
 import jakarta.persistence.Embeddable
 import java.math.BigDecimal
@@ -7,8 +8,10 @@ import java.math.BigDecimal
 @Embeddable
 data class Money(
     @Column(name = "amount")
+    @Schema(example = "12.99")
     val amount: BigDecimal,
     @Column(name = "currency")
+    @Schema(example = "USD")
     val currency: String
 ) {
     init {

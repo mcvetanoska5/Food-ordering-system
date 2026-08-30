@@ -8,6 +8,7 @@ import mk.finki.restaurantservice.domain.restaurant.valueobjects.RestaurantId
 import mk.finki.restaurantservice.handlers.EventMessagingEventHandler
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.math.BigDecimal
 import java.util.*
 
 @Service
@@ -16,16 +17,33 @@ class MenuItemApplicationService(
     private val eventMessagingEventHandler: EventMessagingEventHandler
 ) {
     @Transactional(readOnly = true)
-    fun checkAvailability(menuItemIds: List<UUID>): Map<UUID, Boolean> {
+    fun checkAvailability(menuItemIds: List<UUID>): List<MenuItemAvailabilityInfo> {
         val restaurants = restaurantRepository.findAll()
-        val results = mutableMapOf<UUID, Boolean>()
+        val results = mutableListOf<MenuItemAvailabilityInfo>()
 
         menuItemIds.forEach { id ->
             val item = restaurants.flatMap { it.menu }.find { it.id.value == id }
-            results[id] = item?.let { it.status == MenuItemStatus.AVAILABLE && !it.deleted } ?: false
+            val info = if (item != null) {
+                MenuItemAvailabilityInfo(
+                    id,
+                    item.status == MenuItemStatus.AVAILABLE && !item.deleted,
+                    item.price.amount,
+                    item.price.currency
+                )
+            } else {
+                MenuItemAvailabilityInfo(id, false, null, null)
+            }
+            results.add(info)
         }
         return results
     }
+
+    data class MenuItemAvailabilityInfo(
+        val menuItemId: UUID,
+        val available: Boolean,
+        val price: BigDecimal?,
+        val currency: String?
+    )
 
     @Transactional
     fun setAvailability(restaurantId: UUID, menuItemId: UUID, available: Boolean) {

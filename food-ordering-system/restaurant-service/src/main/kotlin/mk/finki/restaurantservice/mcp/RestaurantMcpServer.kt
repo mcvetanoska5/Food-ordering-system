@@ -30,6 +30,6 @@ class RestaurantMcpServer(
 
     fun checkItemAvailability(ids: List<UUID>): String {
         val availability = menuItemService.checkAvailability(ids)
-        return availability.entries.joinToString("\n") { "${it.key}: ${if (it.value) "Available" else "Unavailable"}" }
+        return availability.joinToString("\n") { "${it.menuItemId}: ${if (it.available) "Available" else "Unavailable"}" }
     }
 }

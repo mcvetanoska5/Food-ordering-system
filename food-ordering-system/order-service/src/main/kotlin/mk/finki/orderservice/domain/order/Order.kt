@@ -1,5 +1,6 @@
 package mk.finki.orderservice.domain.order
 
+import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.persistence.*
 import mk.finki.orderservice.domain.order.entities.OrderItem
 import mk.finki.orderservice.domain.order.enums.OrderStatus
@@ -11,13 +12,20 @@ import java.util.UUID
 @Table(name = "orders")
 class Order(
     @EmbeddedId
+    @Schema(example = "123e4567-e89b-12d3-a456-426614174000")
     val id: OrderId,
     @Embedded
+    @Schema(example = "123e4567-e89b-12d3-a456-426614174001")
     val customerId: CustomerId,
     @Embedded
-    val restaurantId: RestaurantId
+    @Schema(example = "123e4567-e89b-12d3-a456-426614174002")
+    val restaurantId: RestaurantId,
+    @Column(name = "address")
+    @Schema(example = "123 Main St, New York, NY")
+    val address: String
 ) {
     @Enumerated(EnumType.STRING)
+    @Schema(example = "PLACED")
     var status: OrderStatus = OrderStatus.PLACED
         private set
 
@@ -25,8 +33,10 @@ class Order(
     @JoinColumn(name = "order_id")
     private val _items: MutableList<OrderItem> = mutableListOf()
 
+    @Schema(example = "[{\"id\":\"123e4567-e89b-12d3-a456-426614174003\",\"menuItemId\":\"123e4567-e89b-12d3-a456-426614174004\",\"quantity\":2,\"price\":{\"amount\":18.5,\"currency\":\"USD\"},\"subTotal\":{\"amount\":37.0,\"currency\":\"USD\"}}]")
     val items: List<OrderItem> get() = _items
 
+    @Schema(example = "{\"amount\":37.00,\"currency\":\"USD\"}")
     val totalPrice: Money
         get() = _items.map { it.subTotal }.reduceOrNull { acc, money -> acc.add(money) }
             ?: Money.zero()
@@ -50,5 +60,5 @@ class Order(
     }
 
     // For JPA
-    protected constructor() : this(OrderId(UUID.randomUUID()), CustomerId(UUID.randomUUID()), RestaurantId(UUID.randomUUID()))
+    protected constructor() : this(OrderId(UUID.randomUUID()), CustomerId(UUID.randomUUID()), RestaurantId(UUID.randomUUID()), "")
 }

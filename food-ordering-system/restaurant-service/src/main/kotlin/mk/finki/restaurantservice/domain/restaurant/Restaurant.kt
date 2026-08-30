@@ -1,5 +1,6 @@
 package mk.finki.restaurantservice.domain.restaurant
 
+import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.persistence.*
 import mk.finki.restaurantservice.domain.restaurant.entities.MenuItem
 import mk.finki.restaurantservice.domain.restaurant.enums.MenuItemStatus
@@ -13,14 +14,18 @@ import java.util.UUID
 @Table(name = "restaurants")
 class Restaurant(
     @EmbeddedId
+    @Schema(example = "123e4567-e89b-12d3-a456-426614174000")
     val id: RestaurantId,
+    @Schema(example = "Pizza Palace")
     var name: String,
+    @Schema(example = "456 Oak St, London")
     var address: String
 ) {
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
     @JoinColumn(name = "restaurant_id")
     private val _menu: MutableList<MenuItem> = mutableListOf()
 
+    @Schema(example = "[]")
     val menu: List<MenuItem>
         get() = _menu.filter { !it.deleted }
 

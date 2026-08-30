@@ -25,10 +25,36 @@ class RestaurantApplicationService(
     }
 
     @Transactional
-    fun addMenuItem(restaurantId: UUID, name: String, amount: java.math.BigDecimal, currency: String) {
+    fun addMenuItem(restaurantId: UUID, name: String, amount: java.math.BigDecimal, currency: String): mk.finki.restaurantservice.domain.restaurant.entities.MenuItem {
         val restaurant = restaurantRepository.findById(RestaurantId(restaurantId))
-            .orElseThrow { RuntimeException("Restaurant not found") }
-        restaurant.addMenuItem(name, Money(amount, currency))
+            .orElseThrow { NoSuchElementException("Restaurant not found: $restaurantId") }
+        val menuItem = restaurant.addMenuItem(name, Money(amount, currency))
+        restaurantRepository.save(restaurant)
+        return menuItem
+    }
+
+    @Transactional
+    fun updateMenuItem(restaurantId: UUID, menuItemId: UUID, name: String?, price: java.math.BigDecimal?, status: mk.finki.restaurantservice.domain.restaurant.enums.MenuItemStatus?) {
+        val restaurant = restaurantRepository.findById(RestaurantId(restaurantId))
+            .orElseThrow { NoSuchElementException("Restaurant not found: $restaurantId") }
+        val menuItem = restaurant.menu.find { it.id.value == menuItemId }
+            ?: throw NoSuchElementException("Menu item not found: $menuItemId")
+
+        name?.let { menuItem.name = it }
+        price?.let { menuItem.updatePrice(Money(it, menuItem.price.currency)) }
+        status?.let { menuItem.updateStatus(it) }
+
+        restaurantRepository.save(restaurant)
+    }
+
+    @Transactional
+    fun deleteMenuItem(restaurantId: UUID, menuItemId: UUID) {
+        val restaurant = restaurantRepository.findById(RestaurantId(restaurantId))
+            .orElseThrow { NoSuchElementException("Restaurant not found: $restaurantId") }
+        val menuItem = restaurant.menu.find { it.id.value == menuItemId }
+            ?: throw NoSuchElementException("Menu item not found: $menuItemId")
+        
+        menuItem.discontinue()
         restaurantRepository.save(restaurant)
     }
 }
