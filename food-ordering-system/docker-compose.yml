@@ -63,7 +63,7 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092"]
       interval: 10s
-      timeout: 5s
+      timeout: 30s
       retries: 5
 
   # Kafka UI (optional, for debugging)
@@ -96,18 +96,28 @@ services:
       timeout: 5s
       retries: 5
 
-  # Keycloak (optional, commented out for now; uncomment when auth is fully integrated)
-  # keycloak:
-  #   image: quay.io/keycloak/keycloak:22.0.1
-  #   container_name: keycloak
-  #   environment:
-  #     - KEYCLOAK_ADMIN=admin
-  #     - KEYCLOAK_ADMIN_PASSWORD=admin
-  #   command: start-dev
-  #   ports:
-  #     - "8080:8080"
-  #   networks:
-  #     - shared_net
+  # Keycloak for local dev
+  keycloak:
+    image: quay.io/keycloak/keycloak:22.0.1
+    container_name: keycloak
+    environment:
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin
+      - KC_HOSTNAME=localhost
+      - KC_HOSTNAME_STRICT=false
+    command: start-dev --import-realm
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json
+    networks:
+      - shared_net
+    healthcheck:
+      test: ["CMD","curl","-f","http://localhost:8080/realms/master"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
 
   # Axon Server (provides event store / messaging for Axon Framework)
   axonserver:
@@ -150,7 +160,10 @@ services:
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       SPRING_CLOUD_CONSUL_HOST: consul
       SPRING_CLOUD_CONSUL_PORT: 8500
+      SPRING_CLOUD_CONSUL_DISCOVERY_REGISTER: "true"
       SPRING_AUTOCONFIGURE_EXCLUDE: org.axonframework.springboot.autoconfig.AxonServerAutoConfiguration,org.axonframework.springboot.autoconfig.AxonServerActuatorAutoConfiguration,org.axonframework.springboot.autoconfig.AxonServerBusAutoConfiguration
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: "http://keycloak:8080/realms/food-ordering"
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: "http://keycloak:8080/realms/food-ordering/protocol/openid-connect/certs"
     healthcheck:
       test: ["CMD-SHELL", "cat /dev/null"] # curl is missing in the image
       interval: 10s
@@ -182,7 +195,11 @@ services:
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       SPRING_CLOUD_CONSUL_HOST: consul
       SPRING_CLOUD_CONSUL_PORT: 8500
+      SPRING_CLOUD_CONSUL_DISCOVERY_REGISTER: "true"
       AXON_AXONSERVER_SERVERS: axonserver:8124
+      SPRING_AUTOCONFIGURE_EXCLUDE: org.axonframework.springboot.autoconfig.AxonServerAutoConfiguration,org.axonframework.springboot.autoconfig.AxonServerActuatorAutoConfiguration,org.axonframework.springboot.autoconfig.AxonServerBusAutoConfiguration
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: "http://keycloak:8080/realms/food-ordering"
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: "http://keycloak:8080/realms/food-ordering/protocol/openid-connect/certs"
     healthcheck:
       test: ["CMD-SHELL", "cat /dev/null"] # curl is missing in the image
       interval: 10s

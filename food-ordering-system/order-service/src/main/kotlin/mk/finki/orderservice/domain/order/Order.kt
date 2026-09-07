@@ -33,10 +33,10 @@ class Order(
     @JoinColumn(name = "order_id")
     private val _items: MutableList<OrderItem> = mutableListOf()
 
-    @Schema(example = "[{\"id\":\"123e4567-e89b-12d3-a456-426614174003\",\"menuItemId\":\"123e4567-e89b-12d3-a456-426614174004\",\"quantity\":2,\"price\":{\"amount\":18.5,\"currency\":\"USD\"},\"subTotal\":{\"amount\":37.0,\"currency\":\"USD\"}}]")
+    @get:Schema(example = "[{\"id\":\"123e4567-e89b-12d3-a456-426614174003\",\"menuItemId\":\"123e4567-e89b-12d3-a456-426614174004\",\"quantity\":2,\"price\":{\"amount\":18.5,\"currency\":\"USD\"},\"subTotal\":{\"amount\":37.0,\"currency\":\"USD\"}}]")
     val items: List<OrderItem> get() = _items
 
-    @Schema(example = "{\"amount\":37.00,\"currency\":\"USD\"}")
+    @get:Schema(example = "{\"amount\":37.00,\"currency\":\"USD\"}")
     val totalPrice: Money
         get() = _items.map { it.subTotal }.reduceOrNull { acc, money -> acc.add(money) }
             ?: Money.zero()

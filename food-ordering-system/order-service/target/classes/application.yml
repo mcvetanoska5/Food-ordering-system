@@ -45,7 +45,8 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:9090/realms/food-ordering
+          issuer-uri: http://keycloak:8080/realms/food-ordering
+          jwk-set-uri: http://keycloak:8080/realms/food-ordering/protocol/openid-connect/certs
 
   kafka:
     bootstrap-servers: kafka:9092
@@ -88,3 +89,6 @@ logging:
   level:
     mk.finki.orderservice: DEBUG
     feign: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.security.oauth2: DEBUG
+    org.springframework.security.oauth2.jwt: DEBUG

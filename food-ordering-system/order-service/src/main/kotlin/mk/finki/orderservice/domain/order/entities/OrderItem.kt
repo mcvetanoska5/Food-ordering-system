@@ -20,7 +20,7 @@ class OrderItem internal constructor(
     @Embedded
     val price: Money
 ) {
-    @Schema(example = "37.00")
+    @get:Schema(example = "{\"amount\":37.00,\"currency\":\"USD\"}")
     val subTotal: Money
         get() = price.multiply(quantity)
         
