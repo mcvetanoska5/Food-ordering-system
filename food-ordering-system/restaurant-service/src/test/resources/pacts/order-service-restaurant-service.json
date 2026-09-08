@@ -1,0 +1,62 @@
+{
+  "consumer": {
+    "name": "order-service"
+  },
+  "interactions": [
+    {
+      "description": "a request for menu item availability",
+      "key": "1f3bddd4",
+      "pending": false,
+      "providerStates": [
+        {
+          "name": "menu items exist"
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/menu-items/availability",
+        "query": {
+          "ids": [
+            "b3f1c2a0-2222-4a2b-9c3d-000000000002"
+          ]
+        }
+      },
+      "response": {
+        "body": {
+          "content": [
+            {
+              "available": true,
+              "currency": "MKD",
+              "menuItemId": "b3f1c2a0-2222-4a2b-9c3d-000000000002",
+              "price": 350.00
+            }
+          ],
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "status": 200
+      },
+      "transport": "http",
+      "type": "Synchronous/HTTP"
+    }
+  ],
+  "metadata": {
+    "pact-jvm": {
+      "version": "4.6.14"
+    },
+    "pactSpecification": {
+      "version": "4.0"
+    },
+    "plugins": [
+
+    ]
+  },
+  "provider": {
+    "name": "restaurant-service"
+  }
+}

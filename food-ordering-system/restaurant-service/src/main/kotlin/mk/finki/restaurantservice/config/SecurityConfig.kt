@@ -14,6 +14,7 @@ import org.springframework.security.web.SecurityFilterChain
 
 @Configuration
 @EnableWebSecurity
+@org.springframework.context.annotation.Profile("!test")
 class SecurityConfig {
 
     @Bean
