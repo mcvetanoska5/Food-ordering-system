@@ -132,6 +132,12 @@
             <artifactId>kotlin-test-junit5</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy</artifactId>
+            <version>3.0.23</version>
+            <scope>test</scope>
+        </dependency>
         <!-- Idiomatic, null-safe Mockito syntax for Kotlin (whenever/argumentCaptor/etc.) -->
         <dependency>
             <groupId>org.mockito.kotlin</groupId>
