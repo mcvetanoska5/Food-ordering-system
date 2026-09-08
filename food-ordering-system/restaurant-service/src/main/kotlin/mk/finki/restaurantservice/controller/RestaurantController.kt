@@ -30,23 +30,7 @@ class RestaurantController(
     @GetMapping
     @Operation(summary = "List all restaurants with optional pagination")
     @ApiResponses(value = [
-        ApiResponse(
-            responseCode = "200",
-            description = "List of restaurants",
-            content = [Content(
-                array = ArraySchema(schema = Schema(implementation = Restaurant::class)),
-                examples = [ExampleObject(value = """
-                    [
-                      {
-                        "id": "123e4567-e89b-12d3-a456-426614174000",
-                        "name": "Pizza Palace",
-                        "address": "456 Oak St, London",
-                        "menu": []
-                      }
-                    ]
-                    """)]
-            )]
-        ),
+        ApiResponse(responseCode = "200", description = "List of restaurants", content = [Content(array = ArraySchema(schema = Schema(implementation = Restaurant::class)))]),
         ApiResponse(responseCode = "400", description = "Invalid request", content = [Content(schema = Schema(implementation = ErrorResponse::class))]),
         ApiResponse(responseCode = "401", description = "Unauthorized", content = [Content(schema = Schema(implementation = ErrorResponse::class))]),
         ApiResponse(responseCode = "403", description = "Forbidden", content = [Content(schema = Schema(implementation = ErrorResponse::class))]),
@@ -68,14 +52,7 @@ class RestaurantController(
             responseCode = "201",
             description = "Restaurant created",
             headers = [Header(name = "Location", description = "URI of the created restaurant", schema = Schema(type = "string"))],
-            content = [Content(mediaType = "application/json", schema = Schema(implementation = Restaurant::class), examples = [ExampleObject(value = """
-                {
-                  "id": "123e4567-e89b-12d3-a456-426614174000",
-                  "name": "Pizza Palace",
-                  "address": "456 Oak St, London",
-                  "menu": []
-                }
-                """))])
+            content = [Content(mediaType = "application/json", schema = Schema(implementation = Restaurant::class))]
         ),
         ApiResponse(responseCode = "400", description = "Invalid request", content = [Content(schema = Schema(implementation = ErrorResponse::class))]),
         ApiResponse(responseCode = "401", description = "Unauthorized", content = [Content(schema = Schema(implementation = ErrorResponse::class))]),
@@ -84,16 +61,7 @@ class RestaurantController(
     ])
     @io.swagger.v3.oas.annotations.parameters.RequestBody(
         required = true,
-        content = [Content(
-            mediaType = "application/json",
-            schema = Schema(implementation = CreateRestaurantRequest::class),
-            examples = [ExampleObject(value = """
-                {
-                  "name": "Pizza Palace",
-                  "address": "456 Oak St, London"
-                }
-                """)]
-        )]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = CreateRestaurantRequest::class))]
     )
     fun createRestaurant(@RequestBody request: CreateRestaurantRequest): ResponseEntity<Restaurant> {
         val restaurant = restaurantService.createRestaurant(request.name, request.address)
@@ -111,15 +79,7 @@ class RestaurantController(
             responseCode = "201",
             description = "Menu item added",
             headers = [Header(name = "Location", description = "URI of the created menu item", schema = Schema(type = "string"))],
-            content = [Content(mediaType = "application/json", schema = Schema(implementation = MenuItem::class), examples = [ExampleObject(value = """
-                {
-                  "id": "123e4567-e89b-12d3-a456-426614174002",
-                  "name": "Margherita Pizza",
-                  "price": { "amount": 12.99, "currency": "USD" },
-                  "status": "AVAILABLE",
-                  "deleted": false
-                }
-                """))])
+            content = [Content(mediaType = "application/json", schema = Schema(implementation = MenuItem::class))]
         ),
         ApiResponse(responseCode = "400", description = "Invalid request", content = [Content(schema = Schema(implementation = ErrorResponse::class))]),
         ApiResponse(responseCode = "401", description = "Unauthorized", content = [Content(schema = Schema(implementation = ErrorResponse::class))]),
@@ -128,17 +88,7 @@ class RestaurantController(
     ])
     @io.swagger.v3.oas.annotations.parameters.RequestBody(
         required = true,
-        content = [Content(
-            mediaType = "application/json",
-            schema = Schema(implementation = CreateMenuItemRequest::class),
-            examples = [ExampleObject(value = """
-                {
-                  "name": "Margherita Pizza",
-                  "price": 12.99,
-                  "currency": "USD"
-                }
-                """)]
-        )]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = CreateMenuItemRequest::class))]
     )
     fun addMenuItem(
         @PathVariable id: UUID,
@@ -155,19 +105,7 @@ class RestaurantController(
     @PatchMapping("/{id}/menu-items/{menuItemId}")
     @Operation(summary = "Update a menu item")
     @ApiResponses(value = [
-        ApiResponse(
-            responseCode = "200",
-            description = "Menu item updated",
-            content = [Content(mediaType = "application/json", schema = Schema(implementation = MenuItem::class), examples = [ExampleObject(value = """
-                {
-                  "id": "123e4567-e89b-12d3-a456-426614174002",
-                  "name": "Updated Pizza Name",
-                  "price": { "amount": 15.99, "currency": "USD" },
-                  "status": "AVAILABLE",
-                  "deleted": false
-                }
-                """))])
-        ),
+        ApiResponse(responseCode = "200", description = "Menu item updated", content = [Content(mediaType = "application/json", schema = Schema(implementation = MenuItem::class))]),
         ApiResponse(responseCode = "204", description = "Menu item updated without body"),
         ApiResponse(responseCode = "400", description = "Invalid request", content = [Content(schema = Schema(implementation = ErrorResponse::class))]),
         ApiResponse(responseCode = "401", description = "Unauthorized", content = [Content(schema = Schema(implementation = ErrorResponse::class))]),
@@ -176,17 +114,7 @@ class RestaurantController(
     ])
     @io.swagger.v3.oas.annotations.parameters.RequestBody(
         required = true,
-        content = [Content(
-            mediaType = "application/json",
-            schema = Schema(implementation = UpdateMenuItemRequest::class),
-            examples = [ExampleObject(value = """
-                {
-                  "name": "Updated Pizza Name",
-                  "price": 15.99,
-                  "status": "AVAILABLE"
-                }
-                """)]
-        )]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = UpdateMenuItemRequest::class))]
     )
     fun updateMenuItem(
         @PathVariable id: UUID,
@@ -203,11 +131,7 @@ class RestaurantController(
     @DeleteMapping("/{id}/menu-items/{menuItemId}")
     @Operation(summary = "Delete a menu item (soft delete)", description = "Marks the menu item as deleted without removing it from the restaurant catalogue.")
     @ApiResponses(value = [
-        ApiResponse(
-            responseCode = "204",
-            description = "Menu item deleted",
-            content = [Content(mediaType = "application/json", examples = [ExampleObject(value = "")])]
-        ),
+        ApiResponse(responseCode = "204", description = "Menu item deleted"),
         ApiResponse(responseCode = "400", description = "Invalid request", content = [Content(schema = Schema(implementation = ErrorResponse::class))]),
         ApiResponse(responseCode = "401", description = "Unauthorized", content = [Content(schema = Schema(implementation = ErrorResponse::class))]),
         ApiResponse(responseCode = "403", description = "Forbidden", content = [Content(schema = Schema(implementation = ErrorResponse::class))]),

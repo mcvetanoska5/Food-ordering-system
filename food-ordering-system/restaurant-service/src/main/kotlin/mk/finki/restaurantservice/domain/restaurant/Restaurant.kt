@@ -25,7 +25,7 @@ class Restaurant(
     @JoinColumn(name = "restaurant_id")
     private val _menu: MutableList<MenuItem> = mutableListOf()
 
-    @Schema(example = "[]")
+    @get:Schema(example = "[]")
     val menu: List<MenuItem>
         get() = _menu.filter { !it.deleted }
 

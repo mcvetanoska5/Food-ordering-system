@@ -6,7 +6,6 @@ import au.com.dius.pact.provider.junitsupport.Provider
 import au.com.dius.pact.provider.junitsupport.State
 import au.com.dius.pact.provider.junitsupport.loader.PactFolder
 import mk.finki.restaurantservice.application.MenuItemApplicationService
-import mk.finki.restaurantservice.controller.dto.MenuItemAvailabilityResponse
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.TestTemplate
 import org.junit.jupiter.api.extension.ExtendWith
@@ -14,10 +13,12 @@ import org.mockito.Mockito.`when`
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.boot.test.web.server.LocalServerPort
+import org.springframework.test.context.ActiveProfiles
 import java.math.BigDecimal
 import java.util.*
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ActiveProfiles("test")
 @Provider("restaurant-service")
 @PactFolder("../order-service/target/pacts")
 class RestaurantProviderPactTest {
@@ -44,7 +45,7 @@ class RestaurantProviderPactTest {
         val menuItemId = UUID.fromString("b3f1c2a0-2222-4a2b-9c3d-000000000002")
         `when`(menuItemApplicationService.checkAvailability(listOf(menuItemId)))
             .thenReturn(listOf(
-                MenuItemAvailabilityResponse(
+                MenuItemApplicationService.MenuItemAvailabilityInfo(
                     menuItemId = menuItemId,
                     available = true,
                     price = BigDecimal("350.00"),

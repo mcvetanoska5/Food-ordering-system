@@ -16,6 +16,7 @@ class SecurityConfig {
             .csrf { it.disable() }
             .authorizeExchange { exchange ->
                 exchange
+                    .pathMatchers("/actuator/health", "/actuator/info").permitAll()
                     .pathMatchers("/api/restaurants/**", "/api/menu-items/**").hasRole("RESTAURANT_OWNER")
                     .pathMatchers("/api/orders/**").hasRole("CUSTOMER")
                     .anyExchange().authenticated()

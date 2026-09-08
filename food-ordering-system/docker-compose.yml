@@ -136,6 +136,35 @@ services:
       timeout: 5s
       retries: 5
 
+  # API Gateway - moved into Docker so Consul can reach it on the Docker network
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    container_name: api-gateway
+    ports:
+      - "8088:8080"    # expose container port 8080 as host 8088 to keep previous host port
+    networks:
+      - shared_net
+    depends_on:
+      consul:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_CLOUD_CONSUL_HOST: consul
+      SPRING_CLOUD_CONSUL_PORT: 8500
+      SPRING_CLOUD_CONSUL_DISCOVERY_REGISTER: "true"
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: "http://keycloak:8080/realms/food-ordering"
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: "http://keycloak:8080/realms/food-ordering/protocol/openid-connect/certs"
+    healthcheck:
+      test: ["CMD-SHELL", "cat /dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
   # Order Service Application
   order-service:
     build:
