@@ -1,0 +1,10 @@
+dn: ou=people,dc=springframework,dc=org
+objectClass: organizationalUnit
+ou: people
+
+dn: uid=ben,ou=people,dc=springframework,dc=org
+objectClass: inetOrgPerson
+sn: Ben
+cn: Ben User
+uid: ben
+userPassword: password
