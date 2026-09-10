@@ -1,37 +1,61 @@
 package mk.finki.orderservice.controller
 
-import jakarta.validation.Valid
-import mk.finki.orderservice.domain.OrderStatus
-import mk.finki.orderservice.dto.CreateOrderRequest
-import mk.finki.orderservice.dto.OrderResponse
-import mk.finki.orderservice.service.OrderService
-import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseEntity
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.media.Content
+import io.swagger.v3.oas.annotations.media.Schema
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.responses.ApiResponses
+import io.swagger.v3.oas.annotations.security.SecurityRequirement
+import mk.finki.orderservice.application.OrderApplicationService
+import mk.finki.orderservice.domain.order.Order
+import mk.finki.orderservice.exception.ErrorResponse
 import org.springframework.web.bind.annotation.*
-import java.util.UUID
+import java.util.*
 
 @RestController
-@RequestMapping("/orders")
-class OrderController(private val orderService: OrderService) {
-
+@RequestMapping("/api/orders")
+@SecurityRequirement(name = "bearerAuth")
+class OrderController(
+    private val orderApplicationService: OrderApplicationService
+) {
     @PostMapping
-    fun createOrder(@Valid @RequestBody request: CreateOrderRequest): ResponseEntity<OrderResponse> {
-        val response = orderService.createOrder(request)
-        return ResponseEntity.status(HttpStatus.CREATED).body(response)
+    @Operation(summary = "Place a new order")
+    @ApiResponses(value = [
+        ApiResponse(responseCode = "200", description = "Order created"),
+        ApiResponse(responseCode = "400", description = "Invalid request", content = [Content(schema = Schema(implementation = ErrorResponse::class))])
+    ])
+    fun placeOrder(
+        @RequestBody request: PlaceOrderRequest,
+        @RequestHeader(value = "Idempotency-Key", required = false) idempotencyKey: String?
+    ): Order {
+        return orderApplicationService.placeOrder(
+            request.customerId,
+            request.restaurantId,
+            request.address,
+            request.items.map { OrderApplicationService.ItemRequest(it.menuItemId, it.quantity) },
+            idempotencyKey
+        )
     }
 
     @GetMapping("/{id}")
-    fun getOrder(@PathVariable id: UUID): ResponseEntity<OrderResponse> =
-        ResponseEntity.ok(orderService.getOrder(id))
+    @Operation(summary = "Get order by ID")
+    @ApiResponses(value = [
+        ApiResponse(responseCode = "200", description = "Order found"),
+        ApiResponse(responseCode = "404", description = "Order not found", content = [Content(schema = Schema(implementation = ErrorResponse::class))])
+    ])
+    fun getOrder(@PathVariable id: UUID): Order =
+        orderApplicationService.getOrder(id).orElseThrow { mk.finki.orderservice.exception.OrderNotFoundException(id) }
 
-    @GetMapping("/customer/{customerId}")
-    fun getOrdersByCustomer(@PathVariable customerId: UUID): ResponseEntity<List<OrderResponse>> =
-        ResponseEntity.ok(orderService.getOrdersByCustomer(customerId))
+    data class PlaceOrderRequest(
+        val customerId: UUID,
+        val restaurantId: UUID,
+        val address: String,
+        val items: List<OrderItemRequest>
+    )
 
-    @PatchMapping("/{id}/status")
-    fun updateStatus(
-        @PathVariable id: UUID,
-        @RequestParam status: OrderStatus
-    ): ResponseEntity<OrderResponse> =
-        ResponseEntity.ok(orderService.updateStatus(id, status))
+    data class OrderItemRequest(
+        val menuItemId: UUID,
+        val quantity: Int
+    )
 }
