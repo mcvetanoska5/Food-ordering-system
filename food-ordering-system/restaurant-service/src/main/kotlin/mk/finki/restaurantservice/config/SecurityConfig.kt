@@ -24,7 +24,7 @@ class SecurityConfig {
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests { auth ->
                 auth
-                    .requestMatchers("/actuator/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                    .requestMatchers("/actuator/**", "/swagger-ui/**", "/v3/api-docs/**", "/mcp/**", "/mcp-server/**").permitAll()
                     .anyRequest().hasAnyRole("customer", "restaurant_owner")
             }
             .oauth2ResourceServer { oauth2 ->

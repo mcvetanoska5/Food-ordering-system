@@ -6,18 +6,18 @@ import org.springframework.web.bind.annotation.*
 import java.util.*
 
 @RestController
-@RequestMapping("/mcp")
+@RequestMapping("/api/restaurants")
 class RestaurantMcpController(
     private val mcpServer: RestaurantMcpServer
 ) {
 
-    @GetMapping("/list-restaurants", produces = [MediaType.TEXT_PLAIN_VALUE])
+    @GetMapping("/list", produces = [MediaType.TEXT_PLAIN_VALUE])
     fun listRestaurants(): ResponseEntity<String> {
         val body = mcpServer.listRestaurants()
         return ResponseEntity.ok(body)
     }
 
-    @GetMapping("/menu/{restaurantId}", produces = [MediaType.TEXT_PLAIN_VALUE])
+    @GetMapping("/{restaurantId}/menu", produces = [MediaType.TEXT_PLAIN_VALUE])
     fun getMenu(@PathVariable restaurantId: UUID): ResponseEntity<String> {
         val body = mcpServer.getRestaurantMenu(restaurantId)
         return ResponseEntity.ok(body)

@@ -19,7 +19,7 @@ import java.util.UUID
 class JacksonConfig {
     @Bean
     fun jacksonCustomizer(): Jackson2ObjectMapperBuilderCustomizer = Jackson2ObjectMapperBuilderCustomizer { builder ->
-        builder.modules(
+        builder.modulesToInstall(
             SimpleModule().apply {
                 addSerializer(MenuItemId::class.java, UuidStringSerializer { it.value })
                 addDeserializer(MenuItemId::class.java, UuidStringDeserializer { MenuItemId(it) })
