@@ -1,0 +1,30 @@
+{
+  "consumer": {
+    "name": "restaurant-service"
+  },
+  "messages": [
+    {
+      "contents": "{\n  \"orderId\": \"11111111-1111-4111-8111-111111111111\",\n  \"restaurantId\": \"22222222-2222-4222-8222-222222222222\",\n  \"items\": [\n    { \"menuItemId\": \"33333333-3333-4333-8333-333333333333\", \"quantity\": 2 }\n  ]\n}",
+      "description": "an order placed event",
+      "metaData": {
+        "contentType": "text/plain"
+      },
+      "providerStates": [
+        {
+          "name": "order placed"
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "pact-jvm": {
+      "version": "4.6.14"
+    },
+    "pactSpecification": {
+      "version": "3.0.0"
+    }
+  },
+  "provider": {
+    "name": "order-service"
+  }
+}

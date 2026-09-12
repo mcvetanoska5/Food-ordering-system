@@ -1,7 +1,5 @@
-target/
-**/target/
+﻿target/
 *.jar
-*.class
+*.log
 .idea/
-*.iml
-.DS_Store
+Food-ordering-system/

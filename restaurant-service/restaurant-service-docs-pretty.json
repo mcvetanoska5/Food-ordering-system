@@ -1,0 +1,245 @@
+{
+    "openapi":  "3.0.1",
+    "info":  {
+                 "title":  "OpenAPI definition",
+                 "version":  "v0"
+             },
+    "servers":  [
+                    {
+                        "url":  "http://localhost:8082",
+                        "description":  "Generated server url"
+                    }
+                ],
+    "paths":  {
+                  "/api/restaurants/{id}/menu-items":  {
+                                                           "post":  {
+                                                                        "tags":  [
+                                                                                     "restaurant-controller"
+                                                                                 ],
+                                                                        "operationId":  "addMenuItem",
+                                                                        "parameters":  [
+                                                                                           {
+                                                                                               "name":  "id",
+                                                                                               "in":  "path",
+                                                                                               "required":  true,
+                                                                                               "schema":  {
+                                                                                                              "type":  "string",
+                                                                                                              "format":  "uuid"
+                                                                                                          }
+                                                                                           }
+                                                                                       ],
+                                                                        "requestBody":  {
+                                                                                            "content":  {
+                                                                                                            "application/json":  {
+                                                                                                                                     "schema":  {
+                                                                                                                                                    "$ref":  "#/components/schemas/CreateMenuItemRequest"
+                                                                                                                                                }
+                                                                                                                                 }
+                                                                                                        },
+                                                                                            "required":  true
+                                                                                        },
+                                                                        "responses":  {
+                                                                                          "200":  {
+                                                                                                      "description":  "OK"
+                                                                                                  }
+                                                                                      }
+                                                                    }
+                                                       },
+                  "/api/restaurants":  {
+                                           "get":  {
+                                                       "tags":  [
+                                                                    "restaurant-controller"
+                                                                ],
+                                                       "operationId":  "getAll",
+                                                       "responses":  {
+                                                                         "200":  {
+                                                                                     "description":  "OK",
+                                                                                     "content":  {
+                                                                                                     "*/*":  {
+                                                                                                                 "schema":  {
+                                                                                                                                "type":  "array",
+                                                                                                                                "items":  {
+                                                                                                                                              "$ref":  "#/components/schemas/Restaurant"
+                                                                                                                                          }
+                                                                                                                            }
+                                                                                                             }
+                                                                                                 }
+                                                                                 }
+                                                                     }
+                                                   }
+                                       },
+                  "/api/menu-items/availability":  {
+                                                       "get":  {
+                                                                   "tags":  [
+                                                                                "menu-item-controller"
+                                                                            ],
+                                                                   "operationId":  "checkAvailability",
+                                                                   "parameters":  [
+                                                                                      {
+                                                                                          "name":  "ids",
+                                                                                          "in":  "query",
+                                                                                          "required":  true,
+                                                                                          "schema":  {
+                                                                                                         "type":  "array",
+                                                                                                         "items":  {
+                                                                                                                       "type":  "string",
+                                                                                                                       "format":  "uuid"
+                                                                                                                   }
+                                                                                                     }
+                                                                                      }
+                                                                                  ],
+                                                                   "responses":  {
+                                                                                     "200":  {
+                                                                                                 "description":  "OK",
+                                                                                                 "content":  {
+                                                                                                                 "*/*":  {
+                                                                                                                             "schema":  {
+                                                                                                                                            "type":  "array",
+                                                                                                                                            "items":  {
+                                                                                                                                                          "$ref":  "#/components/schemas/MenuItemAvailabilityResponse"
+                                                                                                                                                      }
+                                                                                                                                        }
+                                                                                                                         }
+                                                                                                             }
+                                                                                             }
+                                                                                 }
+                                                               }
+                                                   }
+              },
+    "components":  {
+                       "schemas":  {
+                                       "CreateMenuItemRequest":  {
+                                                                     "required":  [
+                                                                                      "currency",
+                                                                                      "name",
+                                                                                      "price"
+                                                                                  ],
+                                                                     "type":  "object",
+                                                                     "properties":  {
+                                                                                        "name":  {
+                                                                                                     "type":  "string"
+                                                                                                 },
+                                                                                        "price":  {
+                                                                                                      "type":  "number"
+                                                                                                  },
+                                                                                        "currency":  {
+                                                                                                         "type":  "string"
+                                                                                                     }
+                                                                                    }
+                                                                 },
+                                       "MenuItem":  {
+                                                        "required":  [
+                                                                         "deleted",
+                                                                         "id",
+                                                                         "name",
+                                                                         "price",
+                                                                         "status"
+                                                                     ],
+                                                        "type":  "object",
+                                                        "properties":  {
+                                                                           "id":  {
+                                                                                      "$ref":  "#/components/schemas/MenuItemId"
+                                                                                  },
+                                                                           "name":  {
+                                                                                        "type":  "string"
+                                                                                    },
+                                                                           "price":  {
+                                                                                         "$ref":  "#/components/schemas/Money"
+                                                                                     },
+                                                                           "status":  {
+                                                                                          "type":  "string",
+                                                                                          "enum":  [
+                                                                                                       "AVAILABLE",
+                                                                                                       "OUT_OF_STOCK",
+                                                                                                       "DISCONTINUED"
+                                                                                                   ]
+                                                                                      },
+                                                                           "deleted":  {
+                                                                                           "type":  "boolean"
+                                                                                       }
+                                                                       }
+                                                    },
+                                       "MenuItemId":  {
+                                                          "required":  [
+                                                                           "value"
+                                                                       ],
+                                                          "type":  "object",
+                                                          "properties":  {
+                                                                             "value":  {
+                                                                                           "type":  "string",
+                                                                                           "format":  "uuid"
+                                                                                       }
+                                                                         }
+                                                      },
+                                       "Money":  {
+                                                     "required":  [
+                                                                      "amount",
+                                                                      "currency"
+                                                                  ],
+                                                     "type":  "object",
+                                                     "properties":  {
+                                                                        "amount":  {
+                                                                                       "type":  "number"
+                                                                                   },
+                                                                        "currency":  {
+                                                                                         "type":  "string"
+                                                                                     }
+                                                                    }
+                                                 },
+                                       "Restaurant":  {
+                                                          "required":  [
+                                                                           "address",
+                                                                           "id",
+                                                                           "menu",
+                                                                           "name"
+                                                                       ],
+                                                          "type":  "object",
+                                                          "properties":  {
+                                                                             "id":  {
+                                                                                        "$ref":  "#/components/schemas/RestaurantId"
+                                                                                    },
+                                                                             "name":  {
+                                                                                          "type":  "string"
+                                                                                      },
+                                                                             "address":  {
+                                                                                             "type":  "string"
+                                                                                         },
+                                                                             "menu":  {
+                                                                                          "type":  "array",
+                                                                                          "items":  {
+                                                                                                        "$ref":  "#/components/schemas/MenuItem"
+                                                                                                    }
+                                                                                      }
+                                                                         }
+                                                      },
+                                       "RestaurantId":  {
+                                                            "required":  [
+                                                                             "value"
+                                                                         ],
+                                                            "type":  "object",
+                                                            "properties":  {
+                                                                               "value":  {
+                                                                                             "type":  "string",
+                                                                                             "format":  "uuid"
+                                                                                         }
+                                                                           }
+                                                        },
+                                       "MenuItemAvailabilityResponse":  {
+                                                                            "required":  [
+                                                                                             "available",
+                                                                                             "menuItemId"
+                                                                                         ],
+                                                                            "type":  "object",
+                                                                            "properties":  {
+                                                                                               "menuItemId":  {
+                                                                                                                  "type":  "string",
+                                                                                                                  "format":  "uuid"
+                                                                                                              },
+                                                                                               "available":  {
+                                                                                                                 "type":  "boolean"
+                                                                                                             }
+                                                                                           }
+                                                                        }
+                                   }
+                   }
+}
