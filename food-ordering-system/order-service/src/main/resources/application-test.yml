@@ -50,6 +50,11 @@ spring:
           issuer-uri: http://localhost:8080/realms/food-ordering
           jwk-set-uri: http://localhost:8080/realms/food-ordering/protocol/openid-connect/certs
 
+  ai:
+    mcp:
+      server:
+        protocol: STREAMABLE
+
 axon:
   axonserver:
     enabled: false

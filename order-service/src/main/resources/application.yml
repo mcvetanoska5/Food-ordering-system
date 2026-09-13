@@ -1,0 +1,99 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: order-service
+
+  datasource:
+    url: jdbc:postgresql://postgres-order:5432/order_db
+    username: user
+    password: password
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  cloud:
+    consul:
+      host: consul
+      port: 8500
+      discovery:
+        service-name: order-service
+        health-check-path: /actuator/health
+        health-check-interval: 15s
+        prefer-ip-address: true
+
+    openfeign:
+      # Without this, @FeignClient's `fallback` is never invoked — Feign throws
+      # a raw FeignException instead of routing through RestaurantClientFallback.
+      circuitbreaker:
+        enabled: true
+      client:
+        config:
+          restaurant-service:
+            connect-timeout: 2000
+            read-timeout: 3000
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://keycloak:8080/realms/food-ordering
+          jwk-set-uri: http://keycloak:8080/realms/food-ordering/protocol/openid-connect/certs
+
+  kafka:
+    bootstrap-servers: kafka:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    consumer:
+      bootstrap-servers: kafka:9092
+      group-id: order-service
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
+  ai:
+    mcp:
+      server:
+        protocol: STREAMABLE
+
+# Resilience4j circuit breaker around the Feign call to Restaurant Service
+resilience4j:
+  circuitbreaker:
+    instances:
+      restaurant-service:
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 3
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+logging:
+  level:
+    mk.finki.orderservice: DEBUG
+    feign: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.security.oauth2: DEBUG
+    org.springframework.security.oauth2.jwt: DEBUG

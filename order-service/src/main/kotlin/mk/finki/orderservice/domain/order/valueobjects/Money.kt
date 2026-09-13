@@ -1,0 +1,32 @@
+package mk.finki.orderservice.domain.order.valueobjects
+
+import io.swagger.v3.oas.annotations.media.Schema
+import jakarta.persistence.Column
+import jakarta.persistence.Embeddable
+import java.math.BigDecimal
+
+@Embeddable
+data class Money(
+    @Column(name = "amount")
+    @Schema(example = "12.99")
+    val amount: BigDecimal,
+    @Column(name = "currency")
+    @Schema(example = "USD")
+    val currency: String
+) {
+    init {
+        require(amount >= BigDecimal.ZERO) { "Money amount cannot be negative" }
+        require(currency.matches(Regex("[A-Z]{3}"))) { "Currency must be a 3-letter ISO code" }
+    }
+
+    fun add(delta: Money): Money {
+        require(currency == delta.currency) { "Cannot add different currencies" }
+        return Money(amount.add(delta.amount), currency)
+    }
+
+    fun multiply(quantity: Int): Money = Money(amount.multiply(BigDecimal(quantity)), currency)
+
+    companion object {
+        fun zero(currency: String = "USD") = Money(BigDecimal.ZERO, currency)
+    }
+}

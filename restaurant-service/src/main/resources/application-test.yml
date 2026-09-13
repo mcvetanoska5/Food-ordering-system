@@ -1,0 +1,73 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:restaurant_db;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=false
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        format_sql: true
+
+  cloud:
+    consul:
+      enabled: false
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      bootstrap-servers: localhost:9092
+    consumer:
+      bootstrap-servers: localhost:9092
+      group-id: restaurant-service-test
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+    listener:
+      auto-startup: false
+
+  autoconfigure:
+    exclude:
+      - org.axonframework.springboot.autoconfig.AxonAutoConfiguration
+      - org.axonframework.springboot.autoconfig.JdbcAutoConfiguration
+      - org.axonframework.springboot.autoconfig.AxonServerAutoConfiguration
+      - org.axonframework.springboot.autoconfig.AxonServerActuatorAutoConfiguration
+      - org.axonframework.springboot.autoconfig.AxonServerBusAutoConfiguration
+      - org.axonframework.springboot.autoconfig.EventProcessingAutoConfiguration
+      - org.axonframework.springboot.autoconfig.JpaAutoConfiguration
+      - org.axonframework.springboot.autoconfig.JpaEventStoreAutoConfiguration
+      - org.axonframework.springboot.autoconfig.TransactionAutoConfiguration
+      - org.axonframework.springboot.autoconfig.XStreamAutoConfiguration
+      - org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/realms/food-ordering
+          jwk-set-uri: http://localhost:8080/realms/food-ordering/protocol/openid-connect/certs
+
+  ai:
+    mcp:
+      server:
+        enabled: true
+        protocol: STREAMABLE
+        name: restaurant-mcp-server
+        version: 1.0.0
+        streamable-http:
+          mcp-endpoint: /mcp
+
+axon:
+  axonserver:
+    enabled: false
+
+logging:
+  level:
+    org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping: DEBUG
+    org.springframework.web.servlet.function: DEBUG
+    org.springframework.ai.mcp: DEBUG
+    io.modelcontextprotocol: DEBUG
+

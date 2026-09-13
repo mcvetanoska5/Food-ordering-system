@@ -32,6 +32,11 @@ class SecurityConfig {
             .authorizeHttpRequests { auth ->
                 auth
                     .requestMatchers("/actuator/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                    // MCP endpoint (JSON-RPC over Streamable HTTP) and its plain-REST
+                    // wrapper are meant to be called directly by AI/MCP clients that
+                    // don't carry a Keycloak-issued JWT, so they're excluded from auth.
+                    .requestMatchers("/mcp/**", "/mcp").permitAll()
+                    .requestMatchers("/api/orders/place", "/api/orders/*/summary").permitAll()
                     .anyRequest().hasAnyRole("customer", "restaurant_owner")
             }
             .oauth2ResourceServer { oauth2 ->

@@ -60,6 +60,11 @@ spring:
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
 
+  ai:
+    mcp:
+      server:
+        protocol: STREAMABLE
+
 # Resilience4j circuit breaker around the Feign call to Restaurant Service
 resilience4j:
   circuitbreaker:
