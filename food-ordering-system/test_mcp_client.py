@@ -35,7 +35,7 @@ def first_text(result) -> str:
     raise RuntimeError(f"No text content in tool result: {result}")
 
 
-async def main() -> None:
+async def main() -> int:
     print(f"Connecting to MCP server at {MCP_URL} ...")
 
     async with streamable_http_client(MCP_URL) as (read_stream, write_stream):
@@ -63,7 +63,7 @@ async def main() -> None:
                 print('  curl -X POST http://localhost:8082/api/restaurants '
                       '-H "Content-Type: application/json" '
                       '-d "{\\"name\\":\\"Pizza Palace\\",\\"address\\":\\"456 Oak St\\"}"')
-                sys.exit(1)
+                return 1
 
             restaurant_id = restaurants[0]["id"]
             print(f"\nUsing restaurantId: {restaurant_id}")
@@ -79,7 +79,7 @@ async def main() -> None:
                 print(f'  curl -X POST http://localhost:8082/api/restaurants/{restaurant_id}/menu-items '
                       '-H "Content-Type: application/json" '
                       '-d "{\\"name\\":\\"Margherita Pizza\\",\\"price\\":12.99,\\"currency\\":\\"USD\\"}"')
-                sys.exit(1)
+                return 1
 
             menu_item_id = menu[0]["id"]
             print(f"\nUsing menuItemId: {menu_item_id}")
@@ -91,7 +91,8 @@ async def main() -> None:
             print(json.dumps(availability, indent=2))
 
     banner("Demo complete")
+    return 0
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    sys.exit(asyncio.run(main()))
